@@ -8,6 +8,6 @@ cors:
 
 springdoc:
   api-docs:
-    path: ${SPONSOR_SWAGGER_PATH}
+    path: ${PAYMENT_SWAGGER_PATH}
   swagger-ui:
-    path: ${SPONSOR_SWAGGER_PATH}
+    path: ${PAYMENT_SWAGGER_PATH}
