@@ -1,3 +1,13 @@
 spring:
   application:
     name: Omni-BE-Payment
+
+cors:
+  urls:
+    httpsGatewayURL: ${HTTPS_GATEWAY_URL}
+
+springdoc:
+  api-docs:
+    path: ${SPONSOR_SWAGGER_PATH}
+  swagger-ui:
+    path: ${SPONSOR_SWAGGER_PATH}
