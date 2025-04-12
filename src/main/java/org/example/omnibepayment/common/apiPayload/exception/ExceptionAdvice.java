@@ -1,5 +1,6 @@
 package org.example.omnibepayment.common.apiPayload.exception;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
+@Hidden
 @ControllerAdvice(annotations = {RestController.class})
 public class ExceptionAdvice extends ResponseEntityExceptionHandler {
 
