@@ -6,6 +6,8 @@ import org.example.omnibepayment.entity.base.BaseEntity;
 import org.example.omnibepayment.entity.type.OrderStatus;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,6 +24,9 @@ public class Order extends BaseEntity {
 
     @Column(nullable = false)
     private Long memberId;
+
+    @OneToMany(mappedBy = "order")
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     @Column(nullable = false)
     private String orderCode;
