@@ -62,6 +62,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 상품 상태
     _NOT_FOUND_PRODUCT(HttpStatus.NOT_FOUND,"PRODUCT4001","상품이 없습니다."),
+    _INVALID_PRODUCT_REQUEST(HttpStatus.BAD_REQUEST,"PRODUCT4002","유효하지 않은 상품 요청입니다.."),
 
     // 서비스 상태
     _USER_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"SERVICE5000","USER 서버 에러"),

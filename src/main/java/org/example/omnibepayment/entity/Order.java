@@ -25,24 +25,25 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private Long memberId;
 
-    @OneToMany(mappedBy = "order")
+    @Builder.Default
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String orderCode;
 
     @Column(nullable = false)
     private String orderName;
 
     @Column(nullable = false)
-    private BigDecimal orderAmount;
+    private BigDecimal orderPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
 
     @Column(nullable = false)
-    private Long orderNumber;
+    private Long orderCount;
 
     @Column(nullable = false)
     private int orderDow;
