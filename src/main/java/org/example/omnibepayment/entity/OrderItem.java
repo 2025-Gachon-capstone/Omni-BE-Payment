@@ -26,7 +26,7 @@ public class OrderItem extends BaseEntity {
 
     private int quantity;
 
-    private int AddToCartOrder;
+    private int addToCartOrder;
 
     @Column(nullable = false)
     private Boolean reordered;
