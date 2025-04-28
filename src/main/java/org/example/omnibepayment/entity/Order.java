@@ -54,6 +54,9 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private Long daysSincePrior;
 
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Payment payment;
+
     @Version
     private Long version;
 
