@@ -10,9 +10,11 @@ import org.example.omnibepayment.converter.OrderConverter;
 import org.example.omnibepayment.dto.*;
 import org.example.omnibepayment.entity.Order;
 import org.example.omnibepayment.entity.OrderItem;
+import org.example.omnibepayment.entity.type.OrderStatus;
 import org.example.omnibepayment.repository.OrderItemRepository;
 import org.example.omnibepayment.repository.OrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -135,6 +137,16 @@ public class OrderServiceImpl implements OrderService {
         orderItemRepository.saveAll(orderItems);
 
         return OrderConverter.toCreateOrder(savedOrder);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateOrderStatusToDeny(Order order) {
+        Order freshOrder = orderRepository.findById(order.getOrderId())
+                .orElseThrow(() -> new GeneralException(ErrorStatus._NOT_FOUND_ORDER));
+
+        freshOrder.setStatus(OrderStatus.DENY);
+
+        orderRepository.saveAndFlush(freshOrder);
     }
 
     private OrderMetadata calculateOrderMetadata(Long memberId) {
