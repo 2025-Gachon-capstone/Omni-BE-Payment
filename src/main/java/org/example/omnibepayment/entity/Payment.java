@@ -7,6 +7,7 @@ import org.example.omnibepayment.entity.type.OrderStatus;
 import org.example.omnibepayment.entity.type.PaymentStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -32,7 +33,7 @@ public class Payment extends BaseEntity {
     private BigDecimal paymentAmount;
 
     @Column
-    private String approvedAt;
+    private LocalDateTime approvedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
