@@ -18,6 +18,7 @@ public class ProductResDto {
         private Long productId;
         private String productName;
         private BigDecimal productPrice;
+        private String sponsorName;
 
     }
 
