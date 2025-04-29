@@ -71,7 +71,7 @@ public enum ErrorStatus implements BaseErrorCode {
     _NOT_MATCH_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST,"PAYMENT4002","주문 금액이 일치하지 않습니다."),
     _TOSS_CONFIRM_FAIL(HttpStatus.INTERNAL_SERVER_ERROR,"PAYMENT5001","토스페이먼츠 서버 에러"),
     _TOSS_PAYMENT_NOT_DONE(HttpStatus.INTERNAL_SERVER_ERROR,"PAYMENT5002","토스페이먼츠 인증 실패"),
-    _PAYMENT_SAVE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR,"ORDER5003","결제 정보 저장 오류"),
+    _PAYMENT_SAVE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR,"PAYMENT5003","결제 정보 저장 오류"),
 
     // 서비스 상태
     _USER_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"SERVICE5000","USER 서버 에러"),
