@@ -76,17 +76,6 @@ public class PaymentServiceImpl implements PaymentService {
         try{
             savedPayment = paymentRepository.save(PaymentConverter.toPayment(order,tossConfirmResponse));
 
-            orderRepository.findByMemberIdAndStatus(order.getMemberId(), OrderStatus.TRAIN)
-                    .ifPresent(trainOrder -> {
-                        trainOrder.setStatus(OrderStatus.PRIOR);
-                        orderRepository.save(trainOrder);
-                    });
-
-            order.setPayment(savedPayment);
-            order.setStatus(OrderStatus.TRAIN);
-            orderRepository.save(order);
-
-
         }catch (Exception e) {
 
             try{
@@ -104,6 +93,16 @@ public class PaymentServiceImpl implements PaymentService {
 
             throw new GeneralException(ErrorStatus._PAYMENT_SAVE_FAIL);
         }
+
+        orderRepository.findByMemberIdAndStatus(order.getMemberId(), OrderStatus.TRAIN)
+                .ifPresent(trainOrder -> {
+                    trainOrder.setStatus(OrderStatus.PRIOR);
+                    orderRepository.save(trainOrder);
+                });
+
+        order.setPayment(savedPayment);
+        order.setStatus(OrderStatus.TRAIN);
+        orderRepository.save(order);
 
         // todo 플라스크에 orderId 전달하기
 

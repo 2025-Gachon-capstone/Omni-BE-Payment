@@ -33,6 +33,11 @@ public class PaymentController {
             tags = "Payment")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "COMMON200-성공",content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "4001", description = "ORDER4001-주문 내역이 없습니다.",content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "4002", description = "PAYMENT4002-주문 금액이 일치하지 않습니다.",content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "5001", description = "PAYMENT5001-토스페이먼츠 서버 에러",content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "5002", description = "PAYMENT5002-토스페이먼츠 인증 실패",content = @Content(schema = @Schema(implementation = ApiResult.class))),
+            @ApiResponse(responseCode = "5003", description = "PAYMENT5003-결제 정보 저장 오류",content = @Content(schema = @Schema(implementation = ApiResult.class))),
     })
     public ApiResult<PaymentResDto.confirmResponse> confirmPayment(@Valid @RequestBody PaymentReqDto.ConfirmRequest confirmRequest) {
 
