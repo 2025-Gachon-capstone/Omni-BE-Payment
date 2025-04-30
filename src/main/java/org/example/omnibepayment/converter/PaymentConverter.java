@@ -50,7 +50,7 @@ public class PaymentConverter {
                 .payments(getPayments)
                 .isFirst(paymentPage.isFirst())
                 .isLast(paymentPage.isLast())
-                .pageSize(paymentPage.getSize())
+                .pageSize(paymentPage.getTotalPages())
                 .totalElements(paymentPage.getTotalElements())
                 .build();
     }
