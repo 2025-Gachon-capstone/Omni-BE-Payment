@@ -49,7 +49,7 @@ public class PaymentController {
 
     }
 
-    @PostMapping("/my/payments")
+    @GetMapping("/my/payments")
     @Operation(summary = "결제 내역 조회 API",
             description = " 시작 날짜(0000-00-00), 마감 날짜(0000-00-00), 주문 명은 선택입니다. ( 엑세스 토큰 필요 )",
             tags = "Payment")
