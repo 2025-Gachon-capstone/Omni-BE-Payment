@@ -1,6 +1,7 @@
 package org.example.omnibepayment.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.omnibepayment.client.FlaskClient;
 import org.example.omnibepayment.client.SponsorClient;
 import org.example.omnibepayment.client.TossPaymentsClient;
 import org.example.omnibepayment.common.apiPayload.ApiResult;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -37,16 +40,18 @@ public class PaymentServiceImpl implements PaymentService {
     private final TossPaymentsClient tossPaymentsClient;
     private final OrderService orderService;
     private final SponsorClient sponsorClient;
+    private final FlaskClient flaskClient;
 
 
     public PaymentServiceImpl(OrderRepository orderRepository,PaymentRepository paymentRepository,
                               TossPaymentsClient tossPaymentsClient, OrderService orderService,
-                              SponsorClient sponsorClient) {
+                              SponsorClient sponsorClient, FlaskClient flaskClient) {
         this.orderRepository = orderRepository;
         this.tossPaymentsClient = tossPaymentsClient;
         this.paymentRepository = paymentRepository;
         this.orderService = orderService;
         this.sponsorClient = sponsorClient;
+        this.flaskClient = flaskClient;
     }
 
     @Override
@@ -115,7 +120,16 @@ public class PaymentServiceImpl implements PaymentService {
         order.setStatus(OrderStatus.TRAIN);
         orderRepository.save(order);
 
-        // todo 플라스크에 orderId 전달하기
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    flaskClient.sendOrder(order.getOrderId());
+                } catch (Exception e) {
+                    log.warn("Flask 호출 실패 - orderId: {}", order.getOrderId(), e);
+                }
+            }
+        });
 
         return PaymentConverter.toPaymentResDto(savedPayment);
     }
