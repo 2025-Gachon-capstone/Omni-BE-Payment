@@ -69,6 +69,11 @@ public class PaymentServiceImpl implements PaymentService {
         TossResDto.ConfirmResponse tossConfirmResponse;
 
         try{
+            log.info("[TOSS 결제 요청] orderCode: {}, amount: {}, paymentKey: {}",
+                    confirmRequest.getOrderCode(),
+                    confirmRequest.getTotalPrice(),
+                    confirmRequest.getPaymentKey());
+
             tossConfirmResponse = tossPaymentsClient.confirmPayment(
                     new TossReqDto.ConfirmRequest(
                         confirmRequest.getOrderCode(),
