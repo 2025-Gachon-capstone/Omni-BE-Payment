@@ -52,5 +52,35 @@ public class PaymentResDto {
 
     }
 
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GetPaymentForAdmin{
+
+        private Long paymentId;
+        private String loginId;
+        private String memberName;
+        private String createAt;
+        private String orderCode;
+        private String orderName;
+        private List<String> sponsorName;
+        private BigDecimal totalPrice;
+
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GetPaymentForAdminPage {
+
+        List<PaymentResDto.GetPaymentForAdmin> payments;
+        boolean isFirst;
+        boolean isLast;
+        int pageSize;
+        long totalElements;
+
+    }
 
 }
