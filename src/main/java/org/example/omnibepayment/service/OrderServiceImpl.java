@@ -166,4 +166,18 @@ public class OrderServiceImpl implements OrderService {
         return new OrderMetadata(orderCount, orderDow, orderHour, daysSincePrior);
     }
 
+    @Transactional
+    @Override
+    public void expireOldPendingOrders() {
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(30);
+
+        List<Order> expiredOrders = orderRepository.findExpiredPendingOrders(OrderStatus.PENDING, threshold);
+
+        for (Order order : expiredOrders) {
+            order.setStatus(OrderStatus.DENY);
+        }
+
+        log.info("30분 이상 PENDING 상태였던 주문 {}건을 DENY로 변경", expiredOrders.size());
+    }
+
 }
