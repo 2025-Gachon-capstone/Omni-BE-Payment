@@ -8,4 +8,5 @@ public interface OrderService {
 
     OrderResDto.CreateOrder createOrder(OrderReqDto.CreateOrder createOrderDto);
     void updateOrderStatusToDeny(Order order);
+    void expireOldPendingOrders();
 }
