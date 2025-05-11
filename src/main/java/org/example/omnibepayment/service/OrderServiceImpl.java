@@ -16,6 +16,7 @@ import org.example.omnibepayment.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -48,7 +49,10 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResDto.CreateOrder createOrder(OrderReqDto.CreateOrder createOrderDto) {
 
+        StopWatch stopWatch = new StopWatch("createOrder");
+
         // 1. 카드 서버에서 memberId 조회
+        stopWatch.start("카드 서버 조회");
         CardReqDto.GetMemberId getMemberIdDto = new CardReqDto.GetMemberId(createOrderDto.getCardNumber());
         ApiResult<CardResDto.GetMemberId> response;
         CardResDto.GetMemberId memberIdDto;
@@ -63,22 +67,29 @@ public class OrderServiceImpl implements OrderService {
         if (response == null || !response.getIsSuccess() || response.getResult() == null) {
             throw new GeneralException(ErrorStatus._NOT_FOUND_CARD);
         }
+        stopWatch.stop();
 
         // 2. 주문 코드 생성 + 주문 메타데이터 계산
+        stopWatch.start("주문 메타데이터 계산");
         String orderCode = UUID.randomUUID().toString();
         OrderMetadata metadata = calculateOrderMetadata(memberIdDto.getMemberId());
+        stopWatch.stop();
 
         // 3. 주문 저장
+        stopWatch.start("주문 저장");
         Order savedOrder = orderRepository.save(OrderConverter.toOrder(createOrderDto, memberIdDto.getMemberId(),orderCode,metadata));
+        stopWatch.stop();
 
         // 4. 요청 상품 ID 추출
+        stopWatch.start("상품 ID 추출");
         List<Long> productIds = createOrderDto.getItems().stream()
                 .map(OrderReqDto.CreateOrder.Item::getProductId)
                 .distinct() // 중복 제거
                 .collect(Collectors.toList());
+        stopWatch.stop();
 
         // 5. 상품 정보 sponsor 서비스에서 조회
-
+        stopWatch.start("스폰서 서버 상품 조회");
         ProductReqDto.GetProductList request = ProductReqDto.GetProductList.builder()
                 .productIds(productIds)
                 .build();
@@ -104,22 +115,28 @@ public class OrderServiceImpl implements OrderService {
             log.warn("요청한 상품 수: {}, 조회된 상품 수: {}", productIds.size(), products.size());
             throw new GeneralException(ErrorStatus._INVALID_PRODUCT_REQUEST);
         }
+        stopWatch.stop();
 
         // 6. 과거 주문 여부 확인 (reordered)
+        stopWatch.start("과거 주문 여부 조회");
         Set<Long> previouslyOrderedProductIds = orderItemRepository
                 .findByOrder_MemberIdAndProductIdIn(memberIdDto.getMemberId(), productIds)
                 .stream()
                 .map(OrderItem::getProductId)
                 .collect(Collectors.toSet());
+        stopWatch.stop();
 
         // 7. 주문 요청에서 수량, 담은 순서 정보 추출
+        stopWatch.start("수량/장바구니 순서 매핑");
         Map<Long, Integer> quantityMap = createOrderDto.getItems().stream()
                 .collect(Collectors.toMap(OrderReqDto.CreateOrder.Item::getProductId, OrderReqDto.CreateOrder.Item::getQuantity));
 
         Map<Long, Integer> addToCartOrderMap = createOrderDto.getItems().stream()
                 .collect(Collectors.toMap(OrderReqDto.CreateOrder.Item::getProductId, OrderReqDto.CreateOrder.Item::getAddToCartOrder));
+        stopWatch.stop();
 
         // 8. 주문 항목 생성
+        stopWatch.start("OrderItem 리스트 생성");
         List<OrderItem> orderItems = products.stream()
                 .map(product -> OrderItem.builder()
                         .order(savedOrder)
@@ -129,12 +146,16 @@ public class OrderServiceImpl implements OrderService {
                         .reordered(previouslyOrderedProductIds.contains(product.getProductId()))
                         .build())
                 .collect(Collectors.toList());
+        stopWatch.stop();
 
         for (OrderItem orderItem : orderItems) {
             savedOrder.getOrderItems().add(orderItem);
         }
-
+        stopWatch.start("주문 항목 저장");
         orderItemRepository.saveAll(orderItems);
+        stopWatch.stop();
+
+        log.info(stopWatch.prettyPrint());
 
         return OrderConverter.toCreateOrder(savedOrder);
     }
@@ -150,18 +171,31 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderMetadata calculateOrderMetadata(Long memberId) {
+        StopWatch stopWatch = new StopWatch("calculateOrderMetadata");
+
+        stopWatch.start("가장 최근 주문 조회");
         LocalDateTime now = LocalDateTime.now();
 
         Order lastOrder = orderRepository.findTopByMemberIdOrderByCreatedAtDesc(memberId)
                 .orElse(null);
+        stopWatch.stop();
 
+        stopWatch.start("daysSincePrior 계산");
         long daysSincePrior = (lastOrder != null)
                 ? ChronoUnit.DAYS.between(lastOrder.getCreatedAt(), now)
                 : 0;
+        stopWatch.stop();
 
+        stopWatch.start("총 주문 수 계산");
         Long orderCount = orderRepository.countByMemberId(memberId) + 1;
+        stopWatch.stop();
+
+        stopWatch.start("요일/시간 계산");
         int orderDow = now.getDayOfWeek().getValue() % 7;
         int orderHour = now.getHour();
+        stopWatch.stop();
+
+        log.info(stopWatch.prettyPrint());
 
         return new OrderMetadata(orderCount, orderDow, orderHour, daysSincePrior);
     }

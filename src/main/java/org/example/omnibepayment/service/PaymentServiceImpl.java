@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -58,16 +59,23 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public PaymentResDto.confirmResponse confirmPayment(PaymentReqDto.ConfirmRequest confirmRequest) {
 
+        StopWatch stopWatch = new StopWatch("confirmPayment");
+
+        stopWatch.start("주문 조회");
         Order order = orderRepository.findByOrderCode(confirmRequest.getOrderCode())
                 .orElseThrow(()-> new GeneralException(ErrorStatus._NOT_FOUND_ORDER));
+        stopWatch.stop();
 
+        stopWatch.start("결제 금액 검증");
         if (order.getOrderPrice().compareTo(BigDecimal.valueOf(confirmRequest.getTotalPrice())) != 0) {
             orderService.updateOrderStatusToDeny(order);
             throw new GeneralException(ErrorStatus._NOT_MATCH_PAYMENT_AMOUNT);
         }
+        stopWatch.stop();
 
         TossResDto.ConfirmResponse tossConfirmResponse;
 
+        stopWatch.start("TOSS 결제 요청");
         try{
             log.info("[TOSS 결제 요청] orderCode: {}, amount: {}, paymentKey: {}",
                     confirmRequest.getOrderCode(),
@@ -86,14 +94,17 @@ public class PaymentServiceImpl implements PaymentService {
             orderService.updateOrderStatusToDeny(order);
             throw new GeneralException(ErrorStatus._TOSS_CONFIRM_FAIL);
         }
+        stopWatch.stop();
 
+        stopWatch.start("TOSS 결제 상태 확인");
         if (!"DONE".equals(tossConfirmResponse.getStatus())) {
             orderService.updateOrderStatusToDeny(order);
             throw new GeneralException(ErrorStatus._TOSS_PAYMENT_NOT_DONE);
         }
+        stopWatch.stop();
 
+        stopWatch.start("결제 정보 저장");
         Payment savedPayment;
-
         try{
             savedPayment = paymentRepository.save(PaymentConverter.toPayment(order,tossConfirmResponse));
 
@@ -114,16 +125,21 @@ public class PaymentServiceImpl implements PaymentService {
 
             throw new GeneralException(ErrorStatus._PAYMENT_SAVE_FAIL);
         }
+        stopWatch.stop();
 
+        stopWatch.start("기존 TRAIN 주문 PRIOR로 변경");
         orderRepository.findByMemberIdAndStatus(order.getMemberId(), OrderStatus.TRAIN)
                 .ifPresent(trainOrder -> {
                     trainOrder.setStatus(OrderStatus.PRIOR);
                     orderRepository.save(trainOrder);
                 });
+        stopWatch.stop();
 
+        stopWatch.start("주문에 결제 연결 및 저장");
         order.setPayment(savedPayment);
         order.setStatus(OrderStatus.TRAIN);
         orderRepository.save(order);
+        stopWatch.stop();
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -135,6 +151,8 @@ public class PaymentServiceImpl implements PaymentService {
                 }
             }
         });
+
+        log.info(stopWatch.prettyPrint());
 
         return PaymentConverter.toPaymentResDto(savedPayment);
     }
