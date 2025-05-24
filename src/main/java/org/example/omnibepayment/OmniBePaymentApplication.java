@@ -10,8 +10,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableFeignClients
 @EnableScheduling
-//@EntityScan(basePackages = "org.example.omnibepayment.entity")
-@EnableJpaRepositories(basePackages = "org.example.omnibepayment.repository")
 public class OmniBePaymentApplication {
 
     public static void main(String[] args) {
