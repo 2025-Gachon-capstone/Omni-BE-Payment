@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.example.omnibepayment.common.apiPayload.ApiResult;
 import org.example.omnibepayment.dto.OrderReqDto;
 import org.example.omnibepayment.dto.OrderResDto;
@@ -17,12 +18,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/payment/v1")
+@Slf4j
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -45,7 +48,16 @@ public class PaymentController {
     })
     public ApiResult<PaymentResDto.confirmResponse> confirmPayment(@Valid @RequestBody PaymentReqDto.ConfirmRequest confirmRequest) {
 
-        return ApiResult.onSuccess(paymentService.confirmPayment(confirmRequest));
+        StopWatch stopWatch = new StopWatch("confirmPayment-Controller");
+        stopWatch.start("컨트롤러 시작");
+
+        ApiResult<PaymentResDto.confirmResponse> result = ApiResult.onSuccess(paymentService.confirmPayment(confirmRequest));
+
+        stopWatch.stop();
+
+        log.info(stopWatch.prettyPrint());  // 👉 실행 시간 로그로 출력
+
+        return result;
 
     }
 

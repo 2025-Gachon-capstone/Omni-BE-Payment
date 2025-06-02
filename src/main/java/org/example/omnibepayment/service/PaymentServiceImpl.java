@@ -141,6 +141,7 @@ public class PaymentServiceImpl implements PaymentService {
         orderRepository.save(order);
         stopWatch.stop();
 
+        stopWatch.start("AI 통신");
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -151,6 +152,7 @@ public class PaymentServiceImpl implements PaymentService {
                 }
             }
         });
+        stopWatch.stop();
 
         log.info(stopWatch.prettyPrint());
 
