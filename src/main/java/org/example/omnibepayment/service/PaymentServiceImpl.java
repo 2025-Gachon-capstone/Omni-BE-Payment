@@ -141,18 +141,22 @@ public class PaymentServiceImpl implements PaymentService {
         orderRepository.save(order);
         stopWatch.stop();
 
-        stopWatch.start("AI 통신");
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
+                StopWatch aiStopWatch = new StopWatch("AI 통신");
+                aiStopWatch.start("Flask 호출");
+
                 try {
                     flaskClient.sendOrder(order.getOrderId());
                 } catch (Exception e) {
                     log.warn("Flask 호출 실패 - orderId: {}", order.getOrderId(), e);
                 }
+
+                aiStopWatch.stop();
+                log.info(aiStopWatch.prettyPrint());
             }
         });
-        stopWatch.stop();
 
         log.info(stopWatch.prettyPrint());
 
