@@ -42,17 +42,20 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderService orderService;
     private final SponsorClient sponsorClient;
     private final FlaskClient flaskClient;
+    private final AsyncFlaskService asyncFlaskService;
 
 
     public PaymentServiceImpl(OrderRepository orderRepository,PaymentRepository paymentRepository,
                               TossPaymentsClient tossPaymentsClient, OrderService orderService,
-                              SponsorClient sponsorClient, FlaskClient flaskClient) {
+                              SponsorClient sponsorClient, FlaskClient flaskClient,
+                              AsyncFlaskService asyncFlaskService) {
         this.orderRepository = orderRepository;
         this.tossPaymentsClient = tossPaymentsClient;
         this.paymentRepository = paymentRepository;
         this.orderService = orderService;
         this.sponsorClient = sponsorClient;
         this.flaskClient = flaskClient;
+        this.asyncFlaskService = asyncFlaskService;
     }
 
     @Override
@@ -144,17 +147,7 @@ public class PaymentServiceImpl implements PaymentService {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                StopWatch aiStopWatch = new StopWatch("AI 통신");
-                aiStopWatch.start("Flask 호출");
-
-                try {
-                    flaskClient.sendOrder(order.getOrderId());
-                } catch (Exception e) {
-                    log.warn("Flask 호출 실패 - orderId: {}", order.getOrderId(), e);
-                }
-
-                aiStopWatch.stop();
-                log.info(aiStopWatch.prettyPrint());
+                asyncFlaskService.sendOrderAsync(order.getOrderId(), flaskClient);
             }
         });
 
