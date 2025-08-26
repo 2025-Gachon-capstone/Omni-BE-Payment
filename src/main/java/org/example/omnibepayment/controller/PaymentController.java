@@ -50,9 +50,7 @@ public class PaymentController {
 
         StopWatch stopWatch = new StopWatch("confirmPayment-Controller");
         stopWatch.start("컨트롤러 시작");
-
         ApiResult<PaymentResDto.confirmResponse> result = ApiResult.onSuccess(paymentService.confirmPayment(confirmRequest));
-
         stopWatch.stop();
 
         log.info(stopWatch.prettyPrint());  // 👉 실행 시간 로그로 출력
